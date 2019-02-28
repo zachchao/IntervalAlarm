@@ -1,0 +1,154 @@
+<!DOCTYPE html>
+<html>
+<head>
+  {% include 'header.html' %}
+</head>
+<body>
+
+<style> 
+  {% include 'css/staple.css' %}
+
+  .row{
+    margin: 0 auto;
+  }
+
+  #time{
+    font-size: 100px;
+    width: 100%;
+    font-family: 'Oxygen Mono', monospace;
+  }
+
+  .timeInput{
+    width: 80%;
+    height: 200px;
+    text-align: center;
+    margin: 0 auto;
+    font-size: 20px;
+  }
+
+  #submitButton{
+    margin: 0 auto;
+    width: 80%;
+    display: block;
+  }
+
+  input[type='number'] {
+    -moz-appearance:textfield;
+  }
+
+  input::-webkit-outer-spin-button,
+  input::-webkit-inner-spin-button {
+      -webkit-appearance: none;
+  }
+</style>
+
+<div id="main-container" style="height: 100%;">
+  {% include 'navbar.html' %}
+  <div class="row" style="text-align: center; margin-top: 200px; margin-bottom: 100px;">
+    <p id="time">Time</p>
+  </div>
+  <div class="row" style="width: 80%;">
+    <div class="col-4">
+      <input type="number" class="form-control timeInput" placeholder="Study" id="startTimeInput">
+    </div>
+    <div class="col-4">
+      <input type="number" class="form-control timeInput" placeholder="Break" id="breakTimeInput">
+    </div>
+
+    <div class="col-4">
+      <button type="button" class="btn btn-secondary timeInput" onclick="startAlarms()">Start!</button>
+    </div>
+  </div>
+
+  <div class="row" style="text-align: center;">
+    <p style="width: 100%">Please input times in minutes</p>
+  </div>
+</div><!--#main-container -->
+
+{% include 'footer.html' %}
+</body>
+
+<script>
+  var timeStarted;
+  var studyOrBreak = 0;
+  var started = false;
+  var alarm = new Audio('http://soundbible.com/mp3/Ship_Brass_Bell-Mike_Koenig-1458750630.mp3');
+
+  function startAlarms(){
+    started = true;
+    studyTime = parseInt(document.querySelector("#startTimeInput").value, 10);
+    breakTime = parseInt(document.querySelector("#breakTimeInput").value, 10);
+
+    if(isNaN(studyTime) || isNaN(breakTime)){
+      alert("Must fill in the inputs")
+    }else{
+      timeToStopAt = Math.round(new Date() / 1000) + studyTime * 60; 
+      displayRemainingTime();
+    }
+  }
+
+  function displayRemainingTime(){
+    timeRemaining = timeToStopAt - (Math.round(+ new Date() / 1000));
+    console.log(timeRemaining);
+    if (timeRemaining <= 0){
+      playAlarm()
+    }else{
+      h = Math.floor(timeRemaining / 3600);
+      timeRemaining -= h * 3600;
+      m = Math.floor(timeRemaining / 60);
+      timeRemaining -= m * 60;
+      s = timeRemaining;
+
+      document.getElementById('time').innerHTML = h + ":" + m + ":" + s;
+      setTimeout(function() {
+        displayRemainingTime()
+      }, 500);
+    }
+  }
+
+  function playAlarm(){
+    alarm.play();
+
+    setTimeout(function() {
+      alarm.pause();
+      alarm.currentTime = 0;
+
+      studyOrBreak = (studyOrBreak + 1) % 2;
+      if(studyOrBreak == 0){ // Study
+        timeToStopAt = Math.round(new Date() / 1000) + studyTime * 60; 
+        displayRemainingTime();
+      }else{ // Break
+        timeToStopAt = Math.round(new Date() / 1000) + breakTime * 60; 
+        displayRemainingTime();
+      }
+    }, 5000);
+  }
+
+  function checkTime(i) {
+    if (i < 10) {
+      i = "0" + i;
+    }
+    return i;
+  }
+
+  function startTime() {
+    var today = new Date();
+    var h = today.getHours();
+    var m = today.getMinutes();
+    var s = today.getSeconds();
+    // add a zero in front of numbers<10
+    m = checkTime(m);
+    s = checkTime(s);
+    document.getElementById('time').innerHTML = h + ":" + m + ":" + s;
+    if(started == false){
+      t = setTimeout(function() {
+        startTime()
+      }, 500);
+    }
+  }
+  startTime();
+
+</script>
+</html>
+
+
