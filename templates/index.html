@@ -94,10 +94,13 @@
       playAlarm()
     }else{
       h = Math.floor(timeRemaining / 3600);
+      h = checkTime(h);
       timeRemaining -= h * 3600;
       m = Math.floor(timeRemaining / 60);
+      m = checkTime(m);
       timeRemaining -= m * 60;
       s = timeRemaining;
+      s = checkTime(s);
 
       document.getElementById('time').innerHTML = h + ":" + m + ":" + s;
       setTimeout(function() {
@@ -137,6 +140,7 @@
     var m = today.getMinutes();
     var s = today.getSeconds();
     // add a zero in front of numbers<10
+    h = checkTime(h);
     m = checkTime(m);
     s = checkTime(s);
     document.getElementById('time').innerHTML = h + ":" + m + ":" + s;
