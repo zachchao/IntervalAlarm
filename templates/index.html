@@ -45,7 +45,7 @@
 <div id="main-container" style="height: 100%;">
   {% include 'navbar.html' %}
   <div class="row" style="text-align: center; margin-top: 200px; margin-bottom: 100px;">
-    <p id="time">Time</p>
+    <p id="time" style="color: #36393E">Time</p>
   </div>
   <div class="row" style="width: 80%;">
     <div class="col-4">
@@ -56,11 +56,11 @@
     </div>
 
     <div class="col-4">
-      <button type="button" class="btn btn-secondary timeInput" onclick="startAlarms()">Start!</button>
+      <button type="button" class="btn btn-secondary timeInput" onclick="startAlarms()" style="background-color: #36393E">Start!</button>
     </div>
   </div>
 
-  <div class="row" style="text-align: center;">
+  <div class="row" style="text-align: center; margin-top: 15px;">
     <p style="width: 100%">Please input times in minutes</p>
   </div>
 </div><!--#main-container -->
