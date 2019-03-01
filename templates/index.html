@@ -42,8 +42,8 @@
   }
 </style>
 
-<div id="main-container" style="height: 100%;">
-  {% include 'navbar.html' %}
+{% include 'navbar.html' %}
+<div id="main-container" style="height: 100%; width: 100%; max-width: 1280px; margin: 0 auto;">
   <div class="row" style="text-align: center; margin-top: 200px; margin-bottom: 100px;">
     <p id="time" style="color: #36393E">Time</p>
   </div>
@@ -56,7 +56,7 @@
     </div>
 
     <div class="col-4">
-      <button type="button" class="btn btn-secondary timeInput" onclick="startAlarms()" style="background-color: #36393E">Start!</button>
+      <button type="button" class="btn btn-secondary timeInput" onclick="startAlarms()" style="background-color: #36393E" id="toggleButton">Start!</button>
     </div>
   </div>
 
@@ -72,6 +72,7 @@
   var timeStarted;
   var studyOrBreak = 0;
   var started = false;
+  var paused = false;
   var alarm = new Audio('http://soundbible.com/mp3/Ship_Brass_Bell-Mike_Koenig-1458750630.mp3');
 
   function startAlarms(){
@@ -83,29 +84,48 @@
       alert("Must fill in the inputs")
     }else{
       timeToStopAt = Math.round(new Date() / 1000) + studyTime * 60; 
+      document.querySelector("#toggleButton").innerHTML = "Pause";
+      document.querySelector("#toggleButton").setAttribute("onclick", "pause()");
       displayRemainingTime();
     }
+  } 
+
+  function pause(){
+    paused = true;
+    timeRemaining = timeToStopAt - (Math.round(+ new Date() / 1000));
+    document.querySelector("#toggleButton").innerHTML = "Restart";
+    document.querySelector("#toggleButton").setAttribute("onclick", "restart()");
+  }
+
+  function restart(){
+    paused = false;
+    timeToStopAt = Math.round(new Date() / 1000) + timeRemaining;
+    document.querySelector("#toggleButton").innerHTML = "Pause";
+    document.querySelector("#toggleButton").setAttribute("onclick", "pause()");
+    displayRemainingTime();
   }
 
   function displayRemainingTime(){
-    timeRemaining = timeToStopAt - (Math.round(+ new Date() / 1000));
-    console.log(timeRemaining);
-    if (timeRemaining <= 0){
-      playAlarm()
-    }else{
-      h = Math.floor(timeRemaining / 3600);
-      h = checkTime(h);
-      timeRemaining -= h * 3600;
-      m = Math.floor(timeRemaining / 60);
-      m = checkTime(m);
-      timeRemaining -= m * 60;
-      s = timeRemaining;
-      s = checkTime(s);
+    if(paused == false){
+      timeRemaining = timeToStopAt - (Math.round(+ new Date() / 1000));
+      console.log(timeRemaining);
+      if (timeRemaining <= 0){
+        playAlarm()
+      }else{
+        h = Math.floor(timeRemaining / 3600);
+        h = checkTime(h);
+        timeRemaining -= h * 3600;
+        m = Math.floor(timeRemaining / 60);
+        m = checkTime(m);
+        timeRemaining -= m * 60;
+        s = timeRemaining;
+        s = checkTime(s);
 
-      document.getElementById('time').innerHTML = h + ":" + m + ":" + s;
-      setTimeout(function() {
-        displayRemainingTime()
-      }, 500);
+        document.getElementById('time').innerHTML = h + ":" + m + ":" + s;
+        setTimeout(function() {
+          displayRemainingTime()
+        }, 500);
+      }
     }
   }
 
