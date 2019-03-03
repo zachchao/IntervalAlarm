@@ -24,6 +24,7 @@
     text-align: center;
     margin: 0 auto;
     font-size: 20px;
+    margin-bottom: 30px;
   }
 
   #submitButton{
@@ -43,24 +44,24 @@
 </style>
 
 {% include 'navbar.html' %}
-<div id="main-container" style="height: 100%; width: 100%; max-width: 1280px; margin: 0 auto;">
+<div id="main-container" style="width: 100%; max-width: 1280px; margin: 0 auto;">
   <div class="row" style="text-align: center; margin-top: 200px; margin-bottom: 100px;">
     <p id="time" style="color: #36393E">Time</p>
   </div>
   <div class="row" style="width: 80%;">
-    <div class="col-3">
+    <div class="col-md-12 col-lg-3">
       <input type="number" class="form-control timeInput" placeholder="Study" id="startTimeInput">
     </div>
-    <div class="col-3">
+    <div class="col-md-12 col-lg-3">
       <input type="number" class="form-control timeInput" placeholder="Break" id="breakTimeInput">
     </div>
 
-    <div class="col-3">
-      <button type="button" class="btn btn-secondary timeInput" onclick="startAlarms()" style="background-color: #36393E" id="toggleButton">Start!</button>
+    <div class="col-md-12 col-lg-3">
+      <button type="button" class="btn btn-secondary timeInput" onclick="startButton()" style="background-color: #36393E; display: block;" id="toggleButton">Start!</button>
     </div>
 
-    <div class="col-3">
-      <button type="button" class="btn btn-secondary timeInput" onclick="reset()" style="background-color: #36393E">Reset</button>
+    <div class="col-md-12 col-lg-3">
+      <button type="button" class="btn btn-secondary timeInput" onclick="reset()" style="display: block;">Reset</button>
     </div>
   </div>
 
@@ -73,41 +74,26 @@
 </body>
 
 <script>
-  var timeStarted;
-  var studyOrBreak = 0;
-  var started = false;
-  var paused = false;
-  var stop = false;
-  var alarm = new Audio('http://soundbible.com/mp3/Ship_Brass_Bell-Mike_Koenig-1458750630.mp3');
+  function nothing(){
 
-  function startAlarms(){
-    started = true;
-    studyTime = parseInt(document.querySelector("#startTimeInput").value, 10);
-    breakTime = parseInt(document.querySelector("#breakTimeInput").value, 10);
+  }
 
-    if(isNaN(studyTime) || isNaN(breakTime)){
-      alert("Must fill in the inputs")
-    }else{
-      timeToStopAt = Math.round(new Date() / 1000) + studyTime * 60; 
-      document.querySelector("#toggleButton").innerHTML = "Pause";
-      document.querySelector("#toggleButton").setAttribute("onclick", "pause()");
-      displayRemainingTime();
-    }
-  } 
+  function startButton(){
+    f = startAlarms;
+  }
 
   function pause(){
-    paused = true;
     timeRemaining = timeToStopAt - (Math.round(+ new Date() / 1000));
     document.querySelector("#toggleButton").innerHTML = "Restart";
     document.querySelector("#toggleButton").setAttribute("onclick", "restart()");
+    f = nothing;
   }
 
   function restart(){
-    paused = false;
     timeToStopAt = Math.round(new Date() / 1000) + timeRemaining;
     document.querySelector("#toggleButton").innerHTML = "Pause";
     document.querySelector("#toggleButton").setAttribute("onclick", "pause()");
-    displayRemainingTime();
+    f = displayRemainingTime;
   }
 
   function reset(){
@@ -120,54 +106,56 @@
     document.querySelector("#startTimeInput").value = null;
     document.querySelector("#breakTimeInput").value = null;
 
-    setTimeout(function() {
-      startTime()
-    }, 500);
+    document.querySelector("#toggleButton").innerHTML = "Start!";
+    document.querySelector("#toggleButton").setAttribute("onclick", "startButton()");
+
+    f = displayTime;
   }
 
   function displayRemainingTime(){
-    if (stop){
+    timeRemaining = timeToStopAt - (Math.round(+ new Date() / 1000));
+    if (timeRemaining <= 0){
+      f = playAlarm;
       return;
     }
-    if(paused == false){
-      timeRemaining = timeToStopAt - (Math.round(+ new Date() / 1000));
-      console.log(timeRemaining);
-      if (timeRemaining <= 0){
-        playAlarm()
-      }else{
-        h = Math.floor(timeRemaining / 3600);
-        h = checkTime(h);
-        timeRemaining -= h * 3600;
-        m = Math.floor(timeRemaining / 60);
-        m = checkTime(m);
-        timeRemaining -= m * 60;
-        s = timeRemaining;
-        s = checkTime(s);
+    h = Math.floor(timeRemaining / 3600);
+    h = checkTime(h);
+    timeRemaining -= h * 3600;
+    m = Math.floor(timeRemaining / 60);
+    m = checkTime(m);
+    timeRemaining -= m * 60;
+    s = timeRemaining;
+    s = checkTime(s);
 
-        document.getElementById('time').innerHTML = h + ":" + m + ":" + s;
-        setTimeout(function() {
-          displayRemainingTime()
-        }, 500);
+    document.getElementById('time').innerHTML = h + ":" + m + ":" + s;
+  }
+
+  function playAlarm(){
+    if(alarm.paused){
+      alarm.play();
+      timeToPlayAlarm = 10;
+      console.log(timeToPlayAlarm)
+    }else{
+      console.log(timeToPlayAlarm)
+
+      timeToPlayAlarm -= 1;
+      if(timeToPlayAlarm == 0){
+        alarm.pause();
+        alarm.currentTime = 0;
+
+        studyOrBreak = (studyOrBreak + 1) % 2;
+        if(studyOrBreak == 0){ // Study
+          timeToStopAt = Math.round(new Date() / 1000) + studyTime * 60;
+        }else{ // Break
+          timeToStopAt = Math.round(new Date() / 1000) + breakTime * 60; 
+        }
+        f = displayRemainingTime;
       }
     }
   }
 
-  function playAlarm(){
-    alarm.play();
+  function pauseAlarm(){
 
-    setTimeout(function() {
-      alarm.pause();
-      alarm.currentTime = 0;
-
-      studyOrBreak = (studyOrBreak + 1) % 2;
-      if(studyOrBreak == 0){ // Study
-        timeToStopAt = Math.round(new Date() / 1000) + studyTime * 60; 
-        displayRemainingTime();
-      }else{ // Break
-        timeToStopAt = Math.round(new Date() / 1000) + breakTime * 60; 
-        displayRemainingTime();
-      }
-    }, 5000);
   }
 
   function checkTime(i) {
@@ -177,8 +165,7 @@
     return i;
   }
 
-  function startTime() {
-    stop = false;
+  function displayTime() {
     var today = new Date();
     var h = today.getHours();
     var m = today.getMinutes();
@@ -188,13 +175,40 @@
     m = checkTime(m);
     s = checkTime(s);
     document.getElementById('time').innerHTML = h + ":" + m + ":" + s;
-    if(started == false){
-      t = setTimeout(function() {
-        startTime()
-      }, 500);
-    }
   }
-  startTime();
+
+  function startAlarms(){
+    studyTime = parseInt(document.querySelector("#startTimeInput").value, 10);
+    breakTime = parseInt(document.querySelector("#breakTimeInput").value, 10);
+
+    if(isNaN(studyTime) || isNaN(breakTime)){
+      alert("Must fill in the inputs")
+      f = displayTime;
+    }else{
+      timeToStopAt = Math.round(new Date() / 1000) + studyTime * 60; 
+      document.querySelector("#toggleButton").innerHTML = "Pause";
+      document.querySelector("#toggleButton").setAttribute("onclick", "pause()");
+      f = displayRemainingTime;
+    }
+  } 
+
+  function update(){
+    f();
+
+    setTimeout(function() {
+      update();
+    }, 50);
+  }
+
+  var timeStarted, timeToPlayAlarm;
+  var studyOrBreak = 0;
+  var started = false;
+  var paused = false;
+  var stop = false;
+  var f = displayTime;
+  var alarm = new Audio('http://soundbible.com/mp3/Ship_Brass_Bell-Mike_Koenig-1458750630.mp3');
+
+  update();
 
 </script>
 </html>
