@@ -116,7 +116,6 @@
     timeRemaining = timeToStopAt - (Math.round(+ new Date() / 1000));
     if (timeRemaining <= 0){
       f = playAlarm;
-      return;
     }
     h = Math.floor(timeRemaining / 3600);
     h = checkTime(h);
@@ -133,7 +132,7 @@
   function playAlarm(){
     if(alarm.paused){
       alarm.play();
-      timeToPlayAlarm = 10;
+      timeToPlayAlarm = 100;
       console.log(timeToPlayAlarm)
     }else{
       console.log(timeToPlayAlarm)
