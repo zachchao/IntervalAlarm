@@ -20,7 +20,7 @@
 
   .timeInput{
     width: 80%;
-    height: 200px;
+    height: 150px;
     text-align: center;
     margin: 0 auto;
     font-size: 20px;
@@ -48,15 +48,19 @@
     <p id="time" style="color: #36393E">Time</p>
   </div>
   <div class="row" style="width: 80%;">
-    <div class="col-4">
+    <div class="col-3">
       <input type="number" class="form-control timeInput" placeholder="Study" id="startTimeInput">
     </div>
-    <div class="col-4">
+    <div class="col-3">
       <input type="number" class="form-control timeInput" placeholder="Break" id="breakTimeInput">
     </div>
 
-    <div class="col-4">
+    <div class="col-3">
       <button type="button" class="btn btn-secondary timeInput" onclick="startAlarms()" style="background-color: #36393E" id="toggleButton">Start!</button>
+    </div>
+
+    <div class="col-3">
+      <button type="button" class="btn btn-secondary timeInput" onclick="reset()" style="background-color: #36393E">Reset</button>
     </div>
   </div>
 
@@ -73,6 +77,7 @@
   var studyOrBreak = 0;
   var started = false;
   var paused = false;
+  var stop = false;
   var alarm = new Audio('http://soundbible.com/mp3/Ship_Brass_Bell-Mike_Koenig-1458750630.mp3');
 
   function startAlarms(){
@@ -105,7 +110,25 @@
     displayRemainingTime();
   }
 
+  function reset(){
+    timeStarted;
+    studyOrBreak = 0;
+    started = false;
+    paused = false;
+    stop = true;
+
+    document.querySelector("#startTimeInput").value = null;
+    document.querySelector("#breakTimeInput").value = null;
+
+    setTimeout(function() {
+      startTime()
+    }, 500);
+  }
+
   function displayRemainingTime(){
+    if (stop){
+      return;
+    }
     if(paused == false){
       timeRemaining = timeToStopAt - (Math.round(+ new Date() / 1000));
       console.log(timeRemaining);
@@ -155,6 +178,7 @@
   }
 
   function startTime() {
+    stop = false;
     var today = new Date();
     var h = today.getHours();
     var m = today.getMinutes();
