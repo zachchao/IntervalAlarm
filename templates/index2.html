@@ -1,0 +1,308 @@
+<!DOCTYPE html>
+<html>
+<head>
+  {% include 'header.html' %}
+</head>
+<body>
+
+<style> 
+  {% include 'css/staple.css' %}
+
+  .row{
+    margin: 0 auto;
+  }
+
+  #time{
+    font-size: 100px;
+    width: 100%;
+    font-family: 'Oxygen Mono', monospace;
+  }
+
+  .timeInput{
+    width: 100%;
+    height: 150px;
+    text-align: center;
+    margin: 0 auto;
+    font-size: 20px;
+    margin-bottom: 30px;
+  }
+
+  #submitButton{
+    margin: 0 auto;
+    width: 80%;
+    display: block;
+  }
+
+  input[type='number'] {
+    -moz-appearance:textfield;
+  }
+
+  input::-webkit-outer-spin-button,
+  input::-webkit-inner-spin-button {
+      -webkit-appearance: none;
+  }
+
+  #alarmList{
+    background-color: #f5f2d0;
+    height: calc(100% - 50px);
+  }
+  
+  #alarmAdd{
+    height: 50px;
+  }
+
+  .alarmItem{
+    background-color: #6c757d;
+    margin: 5px;
+    font-size: 20px;
+    font-family: 'Ubuntu', sans-serif;
+    color: white;
+  }
+</style>
+
+{% include 'navbar.html' %}
+<div id="main-container" style="width: 100%; max-width: 1280px; margin: auto;">
+  <div class="row">
+    <div class="col-4">
+      <div class="list-group" id="alarmList" style="height: calc(100% - 65px); background-color: #f1f1f1; margin-top: 15px;">
+      </div>
+
+      <div class="row" id="alarmAdd">
+        <div class="btn-group" role="group" aria-label="Basic example" style="width: 100%;">
+          <button type="button" class="btn btn-secondary" style="width: 100%; background-color: #36393E;" data-toggle="modal" data-target="#addAlarmModal">+</button>
+        </div>
+      </div>
+    </div>
+    <div class="col-8">
+      <div class="row" style="text-align: center; margin-top: 200px; margin-bottom: 100px;">
+        <p id="time" style="color: #36393E">Time</p>
+      </div>
+      <div class="row" style="width: 80%;">
+        <div class="col-md-12 col-lg-6">
+          <button type="button" class="btn btn-secondary timeInput" onclick="startButton()" style="background-color: #36393E; display: block;" id="toggleButton">Start!</button>
+        </div>
+
+        <div class="col-md-12 col-lg-6">
+          <button type="button" class="btn btn-secondary timeInput" onclick="reset()" style="display: block;">Reset</button>
+        </div>
+      </div>
+    </div>
+  </div>
+</div><!--#main-container -->
+
+
+<!-- Modal -->
+<div class="modal fade" id="addAlarmModal" tabindex="-1" role="dialog">
+  <div class="modal-dialog" role="document">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="exampleModalLabel">Add alarm(s)</h5>
+        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+      <div class="modal-body">
+        <div class="row">
+          <div class="col-12">
+            <input class="form-control timeInput" placeholder="Name" id="alarmNameInput" style="height: 50px;">
+            <input type="number" class="form-control timeInput" placeholder="Time" id="alarmTimeInput">
+
+            <div class="row">
+              <div class="col-6">
+                <label class="radio-inline"><input type="radio" name="optradio" id="bellAlarmRadio" checked>Bell Alarm (soft)</label>
+              </div>
+              <div class="col-6">
+                <label class="radio-inline"><input type="radio" name="optradio" id="smokeAlarmRadio">Smoke Alarm (harsh)</label>
+              </div>
+            </div>
+
+            <div class="row" style="text-align: center; margin-top: 15px;">
+              <p style="width: 100%">Please input times in minutes</p>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" data-dismiss="modal">Done</button>
+        <button type="button" class="btn btn-secondary" style="background-color: #36393E;" onclick="addAlarm()">Add</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+
+{% include 'footer.html' %}
+</body>
+
+<script>
+  var alarms = [];
+  var index = 0;
+  var timeStarted, timeToPlayAlarm;
+  var f = displayTime;
+  // var alarm = new Audio('http://soundbible.com/mp3/poker-chips-daniel_simon.mp3');
+  var bellAlarm = new Audio('http://soundbible.com/mp3/tolling-bell_daniel-simion.mp3')
+  var smokeAlarm = new Audio('http://soundbible.com/mp3/Smoke%20Alarm-SoundBible.com-1551222038.mp3');
+
+  class Alarm{
+    constructor(name, time, bellAlarm){
+      this.name = name;
+      this.time = time;
+      if(bellAlarm){
+        this.alarm = new Audio('http://soundbible.com/mp3/tolling-bell_daniel-simion.mp3');
+      }else{
+        this.alarm = new Audio('http://soundbible.com/mp3/Smoke%20Alarm-SoundBible.com-1551222038.mp3');
+      }
+    }
+  }
+
+  function addAlarm(){
+    alarmName = document.querySelector("#alarmNameInput").value;
+    alarmTime = parseInt(document.querySelector("#alarmTimeInput").value, 10); 
+    bellAlarm = document.querySelector("#bellAlarmRadio").checked;
+
+    if(isNaN(alarmTime) || alarmName == ""){
+      alert("Must fill in the inputs")
+      f = displayTime;
+    }else{
+      alarms.push(new Alarm(alarmName, alarmTime, bellAlarm));
+
+      list = document.querySelector("#alarmList");
+
+      var btn = document.createElement("button");
+      btn.innerHTML = alarmName;
+      if(alarms.length == 1){
+        btn.className = "list-group-item list-group-item-action list-group-item-primary";
+      }else{
+        btn.className = "list-group-item list-group-item-action";
+      }
+      btn.type = "button";
+      list.appendChild(btn);
+
+      document.querySelector("#alarmNameInput").value = "";
+      document.querySelector("#alarmTimeInput").value = "";
+    }
+  }
+
+  function nothing(){
+
+  }
+
+  function startButton(){
+    f = startAlarms;
+  }
+
+  function pause(){
+    alarms[index].alarm.pause();
+    timeRemaining = timeToStopAt - (Math.round(+ new Date() / 1000));
+    document.querySelector("#toggleButton").innerHTML = "Restart";
+    document.querySelector("#toggleButton").setAttribute("onclick", "restart()");
+    f = nothing;
+  }
+
+  function restart(){
+    timeToStopAt = Math.round(new Date() / 1000) + timeRemaining;
+    document.querySelector("#toggleButton").innerHTML = "Pause";
+    document.querySelector("#toggleButton").setAttribute("onclick", "pause()");
+    f = displayRemainingTime;
+  }
+
+  function reset(){
+    alarms[index].alarm.pause();
+    timeStarted;
+    document.querySelectorAll(".list-group-item")[index].className = "list-group-item list-group-item-action";
+    document.querySelectorAll(".list-group-item")[0].className = "list-group-item list-group-item-action list-group-item-primary";
+    index = 0;
+
+    document.querySelector("#toggleButton").innerHTML = "Start!";
+    document.querySelector("#toggleButton").setAttribute("onclick", "startButton()");
+
+    f = displayTime;
+  }
+
+  function displayRemainingTime(){
+    timeRemaining = timeToStopAt - (Math.round(+ new Date() / 1000));
+    if (timeRemaining <= 0){
+      f = playAlarm;
+    }
+    h = Math.floor(timeRemaining / 3600);
+    h = checkTime(h);
+    timeRemaining -= h * 3600;
+    m = Math.floor(timeRemaining / 60);
+    m = checkTime(m);
+    timeRemaining -= m * 60;
+    s = timeRemaining;
+    s = checkTime(s);
+
+    document.getElementById('time').innerHTML = h + ":" + m + ":" + s;
+  }
+
+  function playAlarm(){
+    alarm = alarms[index].alarm;
+    if(alarm.paused){
+      alarm.currentTime = 0
+      alarm.play();
+      timeToPlayAlarm = 100;
+    }else{
+      timeToPlayAlarm -= 1;
+      if(timeToPlayAlarm <= 0){
+        alarm.pause();
+        index += 1;
+
+        if(index == alarms.length){
+          document.querySelectorAll(".list-group-item")[index - 1].className = "list-group-item list-group-item-action";
+          index = 0;
+        }else{
+          document.querySelectorAll(".list-group-item")[index - 1].className = "list-group-item list-group-item-action";
+        }
+        document.querySelectorAll(".list-group-item")[index].className = "list-group-item list-group-item-action list-group-item-primary";
+
+        timeToStopAt = Math.round(new Date() / 1000) + alarms[index].time * 2;
+        f = displayRemainingTime;
+      }
+    }
+  }
+
+  function checkTime(i) {
+    if (i < 10) {
+      i = "0" + i;
+    }
+    return i;
+  }
+
+  function displayTime() {
+    var today = new Date();
+    var h = today.getHours();
+    var m = today.getMinutes();
+    var s = today.getSeconds();
+    // add a zero in front of numbers<10
+    h = checkTime(h);
+    m = checkTime(m);
+    s = checkTime(s);
+    document.getElementById('time').innerHTML = h + ":" + m + ":" + s;
+  }
+
+  function startAlarms(){
+    if(alarms.length < 1){
+      alert("Must create an alarm")
+      f = displayTime;
+    }else{
+      timeToStopAt = Math.round(new Date() / 1000) + alarms[index].time * 2; 
+      document.querySelector("#toggleButton").innerHTML = "Pause";
+      document.querySelector("#toggleButton").setAttribute("onclick", "pause()");
+      f = displayRemainingTime;
+    }
+  } 
+
+  function update(){
+    f();
+
+    setTimeout(function() {
+      update();
+    }, 50);
+  }
+
+  update();
+
+</script>
+</html>
+
