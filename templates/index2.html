@@ -57,23 +57,30 @@
     font-size: 20px;
     font-family: 'Ubuntu', sans-serif;
     color: white;
+    margin: 15px;
+    width: calc(100% - 30px);
   }
 </style>
 
 {% include 'navbar.html' %}
 <div id="main-container" style="width: 100%; max-width: 1280px; margin: auto;">
   <div class="row">
-    <div class="col-4">
+    <div class="col-md-12 col-lg-4">
       <div class="list-group" id="alarmList" style="height: calc(100% - 65px); background-color: #f1f1f1; margin-top: 15px;">
+
+        <!-- <div class="btn-group" role="group" style="width: 100%;">
+          <button type="button" class="btn btn-secondary" style="width: 80%; font-size: 30px;">Study</button>
+          <button type="button" class="btn btn-secondary" style="width: 20%; font-size: 30px;" index=0 onclick="removeAlarm(this)"><i class="fas fa-trash-alt"></i></button>
+        </div> -->
       </div>
 
       <div class="row" id="alarmAdd">
         <div class="btn-group" role="group" aria-label="Basic example" style="width: 100%;">
-          <button type="button" class="btn btn-secondary" style="width: 100%; background-color: #36393E;" data-toggle="modal" data-target="#addAlarmModal">+</button>
+          <button type="button" class="btn btn-secondary" style="width: 100%; background-color: #36393E; font-size: 40px; font-weight: 700;" data-toggle="modal" data-target="#addAlarmModal"><i class="fas fa-plus"></i></button>
         </div>
       </div>
     </div>
-    <div class="col-8">
+    <div class="col-md-12 col-lg-8">
       <div class="row" style="text-align: center; margin-top: 200px; margin-bottom: 100px;">
         <p id="time" style="color: #36393E">Time</p>
       </div>
@@ -135,24 +142,21 @@
 </body>
 
 <script>
-  var alarms = [];
-  var index = 0;
-  var timeStarted, timeToPlayAlarm;
-  var f = displayTime;
-  // var alarm = new Audio('http://soundbible.com/mp3/poker-chips-daniel_simon.mp3');
-  var bellAlarm = new Audio('http://soundbible.com/mp3/tolling-bell_daniel-simion.mp3')
-  var smokeAlarm = new Audio('http://soundbible.com/mp3/Smoke%20Alarm-SoundBible.com-1551222038.mp3');
+  var secondsPerMinute = 2; // For testing, when deploying, set to 60
 
-  class Alarm{
-    constructor(name, time, bellAlarm){
-      this.name = name;
-      this.time = time;
-      if(bellAlarm){
-        this.alarm = new Audio('http://soundbible.com/mp3/tolling-bell_daniel-simion.mp3');
-      }else{
-        this.alarm = new Audio('http://soundbible.com/mp3/Smoke%20Alarm-SoundBible.com-1551222038.mp3');
-      }
-    }
+  var index = 0;
+  var timeStarted;
+  var timeToPlayAlarm;
+  var f = displayTime;
+  var bellAlarmSound = new Audio('http://soundbible.com/mp3/tolling-bell_daniel-simion.mp3');
+  var smokeAlarmSound = new Audio('http://soundbible.com/mp3/Smoke%20Alarm-SoundBible.com-1551222038.mp3'); 
+  update();
+
+  function removeAlarm(){
+    this.parentElement.parentElement.removeChild(this.parentElement);
+    alarmItem = document.querySelectorAll(".alarmItem")[index];
+    alarmItem.querySelectorAll("button")[0].className = "btn btn-secondary active";
+    alarmItem.querySelectorAll("button")[1].className = "btn btn-secondary active";
   }
 
   function addAlarm(){
@@ -164,19 +168,38 @@
       alert("Must fill in the inputs")
       f = displayTime;
     }else{
-      alarms.push(new Alarm(alarmName, alarmTime, bellAlarm));
-
       list = document.querySelector("#alarmList");
 
-      var btn = document.createElement("button");
-      btn.innerHTML = alarmName;
-      if(alarms.length == 1){
-        btn.className = "list-group-item list-group-item-action list-group-item-primary";
-      }else{
-        btn.className = "list-group-item list-group-item-action";
+      var newAlarm = document.createElement("div")
+      newAlarm.className = "btn-group alarmItem"
+      newAlarm.role = "group"
+      newAlarm.setAttribute("time", alarmTime);
+      newAlarm.setAttribute("bellAlarm", bellAlarm);
+
+      buttonClassName = "btn btn-secondary";
+      if(document.querySelectorAll(".alarmItem").length == 0){
+        buttonClassName += " active";
       }
-      btn.type = "button";
-      list.appendChild(btn);
+
+      var nameButton = document.createElement("button")
+      nameButton.type = "button"
+      nameButton.className = buttonClassName
+      nameButton.style = "width: 80%; font-size: 30px;"
+      nameButton.innerHTML = alarmName + "<br>" + alarmTime + " min";
+
+      var removeButton = document.createElement("button");
+      removeButton.type = "button"
+      removeButton.className = buttonClassName
+      removeButton.style = "width: 20%; font-size: 30px;"
+      removeButton.onclick = removeAlarm;
+
+      var removeIcon = document.createElement("i")
+      removeIcon.className = "fas fa-trash-alt";
+
+      removeButton.appendChild(removeIcon);
+      newAlarm.appendChild(nameButton);
+      newAlarm.appendChild(removeButton);
+      list.appendChild(newAlarm)
 
       document.querySelector("#alarmNameInput").value = "";
       document.querySelector("#alarmTimeInput").value = "";
@@ -192,7 +215,8 @@
   }
 
   function pause(){
-    alarms[index].alarm.pause();
+    bellAlarmSound.pause();
+    smokeAlarmSound.pause();
     timeRemaining = timeToStopAt - (Math.round(+ new Date() / 1000));
     document.querySelector("#toggleButton").innerHTML = "Restart";
     document.querySelector("#toggleButton").setAttribute("onclick", "restart()");
@@ -207,10 +231,17 @@
   }
 
   function reset(){
-    alarms[index].alarm.pause();
+    bellAlarmSound.pause();
+    smokeAlarmSound.pause();
     timeStarted;
-    document.querySelectorAll(".list-group-item")[index].className = "list-group-item list-group-item-action";
-    document.querySelectorAll(".list-group-item")[0].className = "list-group-item list-group-item-action list-group-item-primary";
+    firstAlarmItem = document.querySelectorAll(".alarmItem")[0];
+    firstAlarmItem.querySelectorAll("button")[0].className = "btn btn-secondary active";
+    firstAlarmItem.querySelectorAll("button")[1].className = "btn btn-secondary active";
+
+    currentAlarmItem = document.querySelectorAll(".alarmItem")[index];
+    currentAlarmItem.querySelectorAll("button")[0].className = "btn btn-secondary";
+    currentAlarmItem.querySelectorAll("button")[1].className = "btn btn-secondary";
+
     index = 0;
 
     document.querySelector("#toggleButton").innerHTML = "Start!";
@@ -237,7 +268,12 @@
   }
 
   function playAlarm(){
-    alarm = alarms[index].alarm;
+    alarmItem = document.querySelectorAll(".alarmItem")[index];
+    if(alarmItem.getAttribute("bellalarm") == "true"){
+      alarm = bellAlarmSound;
+    }else{
+      alarm = smokeAlarmSound;
+    }
     if(alarm.paused){
       alarm.currentTime = 0
       alarm.play();
@@ -248,15 +284,21 @@
         alarm.pause();
         index += 1;
 
-        if(index == alarms.length){
-          document.querySelectorAll(".list-group-item")[index - 1].className = "list-group-item list-group-item-action";
+        if(index == document.querySelectorAll(".alarmItem").length){
+          alarmItem = document.querySelectorAll(".alarmItem")[index - 1];
+          alarmItem.querySelectorAll("button")[0].className = "btn btn-secondary";
+          alarmItem.querySelectorAll("button")[1].className = "btn btn-secondary";
           index = 0;
         }else{
-          document.querySelectorAll(".list-group-item")[index - 1].className = "list-group-item list-group-item-action";
+          alarmItem = document.querySelectorAll(".alarmItem")[index - 1];
+          alarmItem.querySelectorAll("button")[0].className = "btn btn-secondary";
+          alarmItem.querySelectorAll("button")[1].className = "btn btn-secondary";
         }
-        document.querySelectorAll(".list-group-item")[index].className = "list-group-item list-group-item-action list-group-item-primary";
+        alarmItem = document.querySelectorAll(".alarmItem")[index];
+          alarmItem.querySelectorAll("button")[0].className = "btn btn-secondary active";
+          alarmItem.querySelectorAll("button")[1].className = "btn btn-secondary active";
 
-        timeToStopAt = Math.round(new Date() / 1000) + alarms[index].time * 60;
+        timeToStopAt = Math.round(new Date() / 1000) + document.querySelectorAll(".alarmItem")[index].getAttribute("time") * secondsPerMinute;
         f = displayRemainingTime;
       }
     }
@@ -282,11 +324,11 @@
   }
 
   function startAlarms(){
-    if(alarms.length < 1){
+    if(document.querySelectorAll(".alarmItem").length < 1){
       alert("Must create an alarm")
       f = displayTime;
     }else{
-      timeToStopAt = Math.round(new Date() / 1000) + alarms[index].time * 60; 
+      timeToStopAt = Math.round(new Date() / 1000) + document.querySelectorAll(".alarmItem")[index].getAttribute("time") * secondsPerMinute; 
       document.querySelector("#toggleButton").innerHTML = "Pause";
       document.querySelector("#toggleButton").setAttribute("onclick", "pause()");
       f = displayRemainingTime;
@@ -300,9 +342,6 @@
       update();
     }, 50);
   }
-
-  update();
-
 </script>
 </html>
 
