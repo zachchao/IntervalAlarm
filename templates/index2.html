@@ -256,7 +256,7 @@
         }
         document.querySelectorAll(".list-group-item")[index].className = "list-group-item list-group-item-action list-group-item-primary";
 
-        timeToStopAt = Math.round(new Date() / 1000) + alarms[index].time * 2;
+        timeToStopAt = Math.round(new Date() / 1000) + alarms[index].time * 60;
         f = displayRemainingTime;
       }
     }
@@ -286,7 +286,7 @@
       alert("Must create an alarm")
       f = displayTime;
     }else{
-      timeToStopAt = Math.round(new Date() / 1000) + alarms[index].time * 2; 
+      timeToStopAt = Math.round(new Date() / 1000) + alarms[index].time * 60; 
       document.querySelector("#toggleButton").innerHTML = "Pause";
       document.querySelector("#toggleButton").setAttribute("onclick", "pause()");
       f = displayRemainingTime;
